@@ -25,7 +25,7 @@ const EmployeeList = () => {
             const data = await response.data.employees.map((emp) => ({
               _id: emp._id,
               sno: sno++,
-              profileImage: <img width={30} /*height={30}*/ className='rounded-full' src={`http://localhost:5000/${emp.userId.profileImage}`}/>,
+              profileImage: <img width={30} /*height={30}*/ className='border w-9 h-9 rounded-full' src={`http://localhost:5000/${emp.userId.profileImage}`}/>,
               name: emp.userId.name,
               dob: new Date(emp.dob).toLocaleDateString(),
               dep_name: emp.department.dep_name,
@@ -52,10 +52,14 @@ const EmployeeList = () => {
       setFilteredEmployee(records);
     }
 
+    if(!filteredEmployee){
+      <div>Loading ...</div>
+    }
+
   return (
     <div className='p-6'>
       <div className='text-center'>
-          <h3 className='text-2xl font-bold'>Manage Employees</h3>
+          <h2 className='text-2xl font-bold'>Manage Employees</h2>
         </div>
         <div className='flex justify-between items-center pb-2'>
           <input 
