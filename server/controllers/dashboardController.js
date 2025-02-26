@@ -12,14 +12,17 @@ const getSummary = async (req, res) =>{
         {$group: {_id: null, totalSalary: {$sum: "$salary"}}}
     ])
 
-    const employeeAppliedForLeave= await Leave.distinct('employeeId')
-
     const leaveStatus = await Leave.aggregate([
         {$group: {
             _id: "$status",
             count: {$sum:1}
         }}
     ])
+    
+// --------------------------------------------------------------------------------------------------------------
+
+    // show distinct employees who appiled for leaves
+    const employeeAppliedForLeave= await Leave.distinct('employeeId')
 
     const leaveSummary = {
         appliedFor: employeeAppliedForLeave.length,
@@ -28,6 +31,32 @@ const getSummary = async (req, res) =>{
         rejected: leaveStatus.find(item => item._id === "Rejected")?.count || 0,
     }
 
+// --------------------------------------------------------------------------------------------------------------
+
+    // to show total number of employees with pending leave
+    // const employeeWithPendingLeave = await Leave.distinct('employeeId', { status: "Pending" });
+
+    // const leaveSummary = {
+    //     appliedFor: employeeWithPendingLeave.length, // Count of employees with at least one pending leave
+    //     approved: leaveStatus.find(item => item._id === "Approved")?.count || 0,
+    //     pending: leaveStatus.find(item => item._id === "Pending")?.count || 0,
+    //     rejected: leaveStatus.find(item => item._id === "Rejected")?.count || 0,
+    // };
+
+// --------------------------------------------------------------------------------------------------------------
+
+    // to show total number of leave
+    // const totalLeavesApplied = await Leave.countDocuments();
+
+    // const leaveSummary = {
+    //     appliedFor: totalLeavesApplied, // Corrected total leave count
+    //     approved: leaveStatus.find(item => item._id === "Approved")?.count || 0,
+    //     pending: leaveStatus.find(item => item._id === "Pending")?.count || 0,
+    //     rejected: leaveStatus.find(item => item._id === "Rejected")?.count || 0,
+    // };
+
+// --------------------------------------------------------------------------------------------------------------
+    
     return res.status(200).json({
         success: true, 
         totalEmployees,
