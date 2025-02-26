@@ -1,12 +1,12 @@
 import React from 'react'
 import {NavLink} from 'react-router-dom'
-import {FaBuilding, FaCalendarAlt, FaTachometerAlt, FaUsers, FaMoneyBillWave, FaCogs} from 'react-icons/fa'
-
+import {FaBuilding, FaCalendarAlt, FaTachometerAlt, FaUsers, FaMoneyBillWave, FaCogs, FaRegCalendarAlt, FaFilePdf} from 'react-icons/fa'
+import {AiOutlineFileText} from 'react-icons/ai'
 const AdminSidebar = () => {
   return (
     <div className="bg-gray-800 text-white h-screen fixed left-0 top-0 bottom-0 space-y-2 w-64">
         <div className='bg-teal-600 h-16 flex items-center justify-center'>
-            <h3 className='text-2xl text-center font-courgette'>Employee Managment System</h3>
+            <h2 className='text-2xl text-center font-courgette'>Employee Managment System</h2>
         </div>
         <div className='px-4'>
             <NavLink to="/admin-dashboard"
@@ -36,16 +36,25 @@ const AdminSidebar = () => {
                 <FaMoneyBillWave/>
                 <span>Salary</span>
             </NavLink>
+            <NavLink to="/admin-dashboard/attendances"
+                className={({isActive}) => `${isActive ? "bg-teal-500" : ""} flex items-center space-x-4 py-2.5 px-4 rounded`}
+                end
+                >
+                <FaRegCalendarAlt/>
+                <span>Attendances</span>
+            </NavLink>
+            <NavLink to="/admin-dashboard/attendances-report"
+                className={({isActive}) => `${isActive ? "bg-teal-500" : ""} flex items-center space-x-4 py-2.5 px-4 rounded`}
+                end
+                >
+                <FaFilePdf/>
+                <span>Attendances Report</span>
+            </NavLink>
             <NavLink to="/admin-dashboard/setting"
                 className={({isActive}) => `${isActive ? "bg-teal-500" : ""} flex items-center space-x-4 py-2.5 px-4 rounded`}>
                 <FaCogs/>
                 <span>Settings</span>
             </NavLink>
-            {/* <NavLink to="/admin-dashboard/attendances"
-                className="flex items-center space-x-4 py-2.5 px-4 rounded">
-                <FaTachometerAlt/>
-                <span>Attendances</span>
-            </NavLink> */}
         </div>
     </div>
   )
