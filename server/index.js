@@ -5,6 +5,7 @@ import departmentRouter from './routes/department.js'
 import employeeRouter from './routes/employee.js'
 import salaryRouter from './routes/salary.js'
 import leaveRouter from './routes/leave.js'
+import attendancesRouter from './routes/attendances.js'
 import connectToDatabase from './db/db.js'
 import dashboardRouter from './routes/dashboard.js'
 import settingRouter from './routes/setting.js'
@@ -20,6 +21,7 @@ app.use('/api/employee', employeeRouter)
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/salary', salaryRouter)
 app.use('/api/leave', leaveRouter)
+app.use('/api/attendances', attendancesRouter)
 app.use('/api/setting', settingRouter)
 app.use('/api/dashboard', dashboardRouter)
 
