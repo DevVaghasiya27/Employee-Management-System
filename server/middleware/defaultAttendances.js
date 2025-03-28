@@ -7,13 +7,15 @@ const defaultAttendances = async (req, res, next) => {
         const existingAttendances = await Attendances.findOne({ date });
 
         if (!existingAttendances) {
-            const employees = await Employee.find({});
+            const employees = await Employee.find({}).populate("department userId");
             if (employees.length === 0) {
                 console.log("No employees found, skipping attendance creation.");
             } else {
                 const attendances = employees.map(employee => ({
                     date,
-                    employeeId: employee._id,
+                    employeeId: employee._id, // Keep reference (optional)
+                    employeeName: employee.userId.name, // Store employee name
+                    departmentName: employee.department.dep_name, // Store department
                     status: null,
                 }));
                 await Attendances.insertMany(attendances);
@@ -26,6 +28,5 @@ const defaultAttendances = async (req, res, next) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
-
 
 export default defaultAttendances;
