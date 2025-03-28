@@ -1,14 +1,14 @@
 import React from 'react'
-import {Outlet} from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import Navbar from '../components/dashboard/Navbar'
-import EmployeeSidebar from '../components/employeeDashboard/EmployeeSideBar'
+import EmployeeSidebar from '../components/employeeDashboard/EmployeeSidebar'
 function EmployeeDashboard() {
   return (
     <div className='flex'>
-      <EmployeeSidebar/>
+      <EmployeeSidebar />
       <div className='flex-1 ml-64 bg-gray-100 h-screen'>
-          <Navbar />
-          <Outlet />
+        <Navbar />
+        <Outlet />
       </div>
     </div>
   )
