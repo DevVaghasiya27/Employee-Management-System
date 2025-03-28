@@ -1,125 +1,105 @@
 import Attendances from "../models/Attendances.js";
+import Employee from "../models/Employee.js";
 
-const getAttendances = async (req,res) => {
+const getAttendances = async (req, res) => {
     try {
-    const date = new Date().toISOString().split('T')[0]
+        const date = new Date().toISOString().split("T")[0];
 
-    const attendances = await Attendances.find({date}).populate({
-        path: "employeeId",
-        populate: [
-            "department",
-            "userId"
-        ]
-    })
-    res.status(200).json({success: true, attendances})
+        const attendances = await Attendances.find({ date }).populate({
+            path: "employeeId",
+            populate: ["department", "userId"],
+        });
+
+        const validAttendances = attendances.filter((att) => att.employeeId !== null);
+
+        res.status(200).json({ success: true, attendances: validAttendances });
     } catch (error) {
-        res.status(500).json({success:false, message: error.message})
+        res.status(500).json({ success: false, message: error.message });
     }
-}
+};
 
 const updateAttendance = async (req, res) => {
     try {
         const { employeeId } = req.params;
         const { status } = req.body;
-        const date = new Date().toISOString().split('T')[0];
-        console.log("Updating attendance for:", employeeId, "with status:", status);
 
-        // Find attendance for this employee on the current date
-        const attendance = await Attendances.findOne({ employeeId, date });
-
-        if (!attendance) {
-            return res.status(404).json({ success: false, message: "Attendance record not found" });
+        const employee = await Employee.findById(employeeId);
+        if (!employee || employee.status === "deleted") {
+            return res
+                .status(404)
+                .json({
+                    success: false,
+                    message: "Employee record not found. Attendance update not possible.",
+                });
         }
 
-        // Update attendance status
-        const updatedAttendance = await Attendances.findOneAndUpdate(
+        const date = new Date().toISOString().split("T")[0];
+        const attendance = await Attendances.findOneAndUpdate(
             { employeeId, date },
-            { status },
+            { $set: { status } },
             { new: true }
         );
 
-        res.status(200).json({ success: true, attendances: updatedAttendance });
+        if (!attendance) {
+            return res
+                .status(404)
+                .json({ success: false, message: "Attendance record not found." });
+        }
+
+        res.status(200).json({ success: true, attendance });
     } catch (error) {
         console.error("Error in updateAttendance:", error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: "Error updating attendance." });
     }
 };
 
-// const attendancesReport = async (req, res) => {
-//     try{
-//         const {date, limit = 5, skip = 0} = req.query;
-//         const query = {};
-
-//         if(date){
-//             query.date = date;
-//         }
-
-//         const attendancesData = await Attendances.find(query)
-//         .populate({
-//             path: "employeeId",
-//             populate: [
-//                 "department",
-//                 "userId"
-//             ]
-//         }).sort({date:-1}).limit(parseInt(limit)).skip(parseInt(skip))
-    
-//     const groupData = attendancesData.reduce((result, record) => {
-//         if(!result[record.id]){
-//             result[record.date] = []
-//         }
-//         result[record.date].push({
-//             employeeId: record.employeeId.employeeId,
-//             employeeName: record.employeeId.userId.name,
-//             departmentName: record.employeeId.department.dep_name,
-//             status: record.status || "Not Marked"
-//         })
-//         return result;
-//     }, {})
-//     return res.status(201).json({success: true, groupData})
-// } catch(error){
-//     res.status(500).json({ success: false, message: error.message });
-//     }
-// }
-
 const attendancesReport = async (req, res) => {
     try {
-        const { date, limit = 5, skip = 0 } = req.query;
-        const query = {};
+        const skip = parseInt(req.query.skip) || 0;
+        const targetDate = req.query.date; // Capture the date filter
 
-        if (date) {
-            query.date = date;
+        let uniqueDatesQuery = [
+            { $group: { _id: "$date", count: { $sum: 1 } } },
+            { $sort: { _id: -1 } },
+        ];
+
+        if (!targetDate) {
+            uniqueDatesQuery.push({ $skip: skip }, { $limit: 1 });
         }
 
-        const attendancesData = await Attendances.find(query)
+        const uniqueDates = await Attendances.aggregate(uniqueDatesQuery);
+
+        if (uniqueDates.length === 0) {
+            return res.status(200).json({ success: true, groupData: {} });
+        }
+
+        const dateToFetch = targetDate || uniqueDates[0]._id;
+
+        const attendancesData = await Attendances.find({ date: dateToFetch })
             .populate({
                 path: "employeeId",
                 populate: ["department", "userId"],
             })
-            .sort({ date: -1 })
-            .limit(parseInt(limit))
-            .skip(parseInt(skip));
+            .sort({ date: -1 });
 
-        console.log("Fetched Attendances:", attendancesData); // Debugging
+        const validAttendancesData = attendancesData.filter(
+            (record) => record.employeeId !== null
+        );
 
-        const groupData = attendancesData.reduce((result, record) => {
-            if (!result[record.date]) {
-                result[record.date] = [];
-            }
-            result[record.date].push({
-                employeeId: record.employeeId.employeeId,
-                employeeName: record.employeeId.userId.name,
-                departmentName: record.employeeId.department.dep_name,
+        const groupData = {
+            [dateToFetch]: validAttendancesData.map((record) => ({
+                employeeId: record.employeeId?.employeeId || "Unknown",
+                employeeName: record.employeeId?.userId?.name || "Unknown",
+                departmentName: record.employeeId?.department?.dep_name || "Unknown",
                 status: record.status || "Not Marked",
-            });
-            return result;
-        }, {});
+            })),
+        };
 
-        return res.status(201).json({ success: true, groupData });
+        return res.status(200).json({ success: true, groupData });
     } catch (error) {
         console.error("Error fetching attendance report:", error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: "Server Error: " + error.message });
     }
 };
 
-
-export {getAttendances, updateAttendance, attendancesReport}
+export { getAttendances, updateAttendance, attendancesReport };
