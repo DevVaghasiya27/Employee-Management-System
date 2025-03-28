@@ -1,5 +1,9 @@
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
+import CreateIcon from '@mui/icons-material/Create';
+import DeleteIcon from '@mui/icons-material/Delete';
+
+
 export const columns = [
     {
         name: "S No.",
@@ -13,44 +17,53 @@ export const columns = [
     },
     {
         name: "Action",
-        selector: (row) => row.action
+        selector: (row) => row.action,
+        center: "true"
     },
 ]
 
-export const DepartmentButtons = ({_id, onDepartmentDelete}) => {
+export const DepartmentButtons = ({ _id, onDepartmentDelete }) => {
     const navigate = useNavigate()
 
     const handleDelete = async (id) => {
         const confirm = window.confirm("Do you want to delete this department?")
-        if(confirm){
-        try{
-            const response = await axios.delete(
-             `http://localhost:5000/api/department/${id}`, 
-             {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-               }
-             }
-         );
-            if(response.data.success){
-              onDepartmentDelete(id)
+        if (confirm) {
+            try {
+                const response = await axios.delete(
+                    `http://localhost:5000/api/department/${id}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('token')}`
+                        }
+                    }
+                );
+                if (response.data.success) {
+                    onDepartmentDelete(id)
+                }
+            } catch (error) {
+                if (error.response && !error.response.data.success) {
+                    alert(error.response.data.error)
+                }
             }
-          } catch (error){
-            if(error.response && !error.response.data.success){
-              alert(error.response.data.error)
-            }
-          }
         }
     }
 
-    return(
+    return (
         <div className="flex space-x-3">
-            <button className="px-3 py-1 bg-teal-600 text-white"
+            {/* Edit Button */}
+            <button className="px-4 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-md"
                 onClick={() => navigate(`/admin-dashboard/department/${_id}`)}
-            >Edit</button>
-            <button className="px-3 py-1 bg-red-600 text-white"
+            >
+                <CreateIcon />
+            </button>
+
+            {/* Delete Button */}
+            <button className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md"
                 onClick={() => handleDelete(_id)}
-            >Delete</button>
+            >
+                <DeleteIcon />
+            </button>
         </div>
+
     )
 }
